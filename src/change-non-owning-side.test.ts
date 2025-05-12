@@ -46,6 +46,22 @@ afterAll(async () => {
   await orm.close(true);
 });
 
+// this passes
+test("can re-assign to owning side of OneToOne relationship", async () => {
+  orm.em.create(Pet, {
+    id: "pet-0",
+    owner: orm.em.create(User, { id: "user-0" }),
+  });
+  await orm.em.flush();
+  orm.em.clear();
+
+  const pet = await orm.em.findOneOrFail(Pet, { id: "pet-0" });
+  pet.owner = ref(orm.em.create(User, { id: "user-1" }));
+
+  await orm.em.flush();
+});
+
+// this fails
 test("can re-assign to non-owning side of OneToOne relationship", async () => {
   orm.em.create(User, {
     id: "user-0",
